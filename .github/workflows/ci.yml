@@ -20,6 +20,9 @@ jobs:
       - name: Build Rust agent
         working-directory: ./agent
         run: cargo build --release
+      - name: Run Rust tests
+        working-directory: ./agent
+        run: cargo test --workspace --quiet
 
   test-python-controller:
     runs-on: ubuntu-latest
