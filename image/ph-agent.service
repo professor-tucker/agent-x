@@ -1,0 +1,12 @@
+[Unit]
+Description=ph-agent (pooled-hypervisor agent)
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/ph-agent
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
