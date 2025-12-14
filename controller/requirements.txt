@@ -2,3 +2,6 @@ fastapi
 uvicorn[standard]
 httpx
 requests
+respx
+pytest
+pytest-asyncio

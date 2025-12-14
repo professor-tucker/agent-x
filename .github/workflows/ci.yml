@@ -39,3 +39,7 @@ jobs:
           pip install -r requirements.txt
       - name: Run a simple lint
         run: python -m pyflakes controller || true
+      - name: Run Python tests
+        working-directory: ./controller
+        run: |
+          pytest -q

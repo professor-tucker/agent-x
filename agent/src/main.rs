@@ -38,14 +38,25 @@ struct AppState {
 
 fn send_telemetry(elastic: &str, payload: &serde_json::Value) {
     if elastic.is_empty() { return }
-    let client = Client::builder().timeout(Duration::from_secs(5)).build();
-    if let Ok(c) = client {
-        let idx = "ph-agent-telemetry";
-        let url = format!("{}/{}/_doc", elastic.trim_end_matches('/'), idx);
-        let _ = c.post(&url)
+    let client = match Client::builder().timeout(Duration::from_secs(5)).build() {
+        Ok(c) => c,
+        Err(_) => return,
+    };
+    let idx = "ph-agent-telemetry";
+    let url = format!("{}/{}/_doc", elastic.trim_end_matches('/'), idx);
+    // retry with simple exponential backoff
+    for attempt in 0..3 {
+        let res = client.post(&url)
             .header(CONTENT_TYPE, "application/json")
             .json(payload)
             .send();
+        match res {
+            Ok(r) if r.status().is_success() => return,
+            _ => {
+                let backoff = std::time::Duration::from_millis(100u64 * (1 << attempt));
+                std::thread::sleep(backoff);
+            }
+        }
     }
 }
 
