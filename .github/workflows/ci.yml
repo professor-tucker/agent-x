@@ -43,3 +43,28 @@ jobs:
         working-directory: ./controller
         run: |
           pytest -q
+
+  build-iso:
+    runs-on: ubuntu-latest
+    needs: [build-rust]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system packages for image build
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin \
+            syslinux-utils mtools dosfstools
+      - name: Build Rust agent (release)
+        working-directory: ./agent
+        run: cargo build --release
+      - name: Run image builder
+        working-directory: ./image
+        run: |
+          sudo bash build-image.sh
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ph-agent-iso
+          path: |
+            ./image/ph-agent-live-*.iso
